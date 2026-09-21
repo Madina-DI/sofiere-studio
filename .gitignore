@@ -1,0 +1,19 @@
+# Секреты
+.env
+.env.*
+!.env.example
+
+# Тяжёлые медиа — храним ссылками, не в репозитории
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.wav
+*.aiff
+
+# macOS
+.DS_Store
+
+# Редакторы
+.vscode/
+.idea/

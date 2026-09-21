@@ -1,21 +1,16 @@
-# Sofiere Studio — website draft
+# Sofiere Studio
 
-Static website: index.html, styles.css, site.js. No build dependencies.
-Open index.html in a browser, or serve the repository with a static server.
+Static bilingual portfolio; no build dependencies.
 
-## Content
-Uses only previously inspected Madina video sources. Case titles other than the film title are descriptive editorial titles, not asserted official campaign names.
-Hubcontent is labelled a concept; no paid commission, brand partnership or performance claims.
-Film source is a 45-second fragment, not the later 1:51 full edit.
-Heavy videos remain on Drive per repository README.
+- index.html: English homepage.
+- ru.html: Russian version.
+- styles.css and site.js: shared styling and lazy-loaded Drive players.
+- Language navigation is ordinary links and works without JavaScript.
+- Deployment: GitHub Pages, site/first-draft branch, repository root.
+- Public URL: https://madina-di.github.io/sofiere-studio/
 
-## Before public deployment
-- Check every Drive preview while signed out. Embedded playback requires visitor access; no sharing settings were changed by this implementation.
-- Replace Drive previews with optimized video hosting and actual extracted poster frames when files are available.
-- Confirm the selected source versions, descriptive titles and contact email.
-- Inspect desktop and mobile rendering, keyboard navigation and video playback.
-- Choose hosting and connect this repository.
-- Current chat execution environment was unavailable: this draft has not been browser-tested or deployed.
+## Content integrity
+Only previously inspected video sources are used. Descriptive case titles are editorial titles. Independent concepts are labelled as such; no client revenue, paid commissions or partnerships are claimed. The first film is a 45-second excerpt, not the later full cut.
 
-## Scope
-AI studio only. Developer portfolio and construction CRM are separate.
+## Validation and remaining checks
+Source checks cover section anchors, language navigation, matching video sources and English translation completeness. Browser rendering and anonymous Drive playback still need verification; the execution environment was unavailable. Heavy video files remain on Drive.

@@ -10,3 +10,8 @@
 .contact .contact-email{margin:22px 0 10px;font-size:14px;overflow-wrap:anywhere}
 .contact .contact-hint{font-size:12px;margin-bottom:18px}
 @media(max-width:650px){.case-details dl{grid-template-columns:1fr;gap:6px}.case-details dd{margin-bottom:12px}}
+
+.contact-actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.email-button{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+.contact .contact-phone{margin:24px 0 0;font-size:18px}
+@media(max-width:650px){.contact-actions{flex-direction:column;align-items:stretch}.contact-actions .button{justify-content:space-between}}

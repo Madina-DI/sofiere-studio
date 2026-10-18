@@ -17,3 +17,6 @@
 # Редакторы
 .vscode/
 .idea/
+
+# Small, approved portfolio film with direct web playback.
+!media/sofidar-door.mp4

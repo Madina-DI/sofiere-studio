@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#e9e2d8">
+<title>Wedding Ivory — Наша свадьба</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#e9e2d8;color:#655b4b;font:14px Georgia,"Times New Roman",serif}
+button{border:1px solid #bcad93;background:#faf7ef;color:#655b4b;border-radius:30px;padding:10px 16px;cursor:pointer;font:inherit}
+button:disabled{opacity:.3;cursor:default}
+button:not(:disabled):hover{background:#f1e9db}
+input{font:inherit}
+#gate{min-height:100dvh;display:grid;place-items:center;padding:22px}
+.gate-book{width:min(100%,450px);padding:49px 35px 42px;background:#fcfaf4;border:1px solid #d8cdbb;box-shadow:0 16px 45px #51422c26;text-align:center}
+.flower{font-size:42px;color:#b9a990}
+.eyebrow{font-size:11px;letter-spacing:2.5px}
+h1{font-size:26px;letter-spacing:3px;font-weight:400;margin:24px auto 16px}
+.gate-book p{line-height:1.7}
+.gate-book form{margin-top:32px;display:grid;gap:13px;text-align:left}
+.gate-book input{width:100%;padding:13px 14px;color:#655b4b;background:white;border:1px solid #bfb3a0}
+.gate-book button{width:100%;margin-top:9px}
+#error{color:#a74d54;min-height:18px;font-size:13px;text-align:center}
+#album{height:100dvh;display:none;flex-direction:column}
+header,footer{display:flex;align-items:center;justify-content:center;gap:18px;padding:12px}
+header span{letter-spacing:3px}
+main{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:8px 50px;perspective:1800px;position:relative}
+#book{display:flex;width:100%;height:100%;box-shadow:0 15px 45px #51422c30;position:relative}
+#book.cover{max-width:540px}
+.page{flex:1;min-width:0;background:#fcfaf4;padding:12px;position:relative;display:flex;justify-content:center;align-items:center;overflow:hidden}
+.page:first-child{border-right:1px solid #d8cdbb}
+.page img{width:100%;height:100%;object-fit:contain;position:relative;z-index:1}
+.page:after{content:"❀";position:absolute;right:2px;top:-7px;font-size:25px;color:#cbbd9a88;z-index:2;pointer-events:none}
+.page:before{content:"❀";position:absolute;left:0;bottom:-8px;font-size:25px;color:#b1bb9a77;z-index:2;pointer-events:none}
+.cover .page:before,.cover .page:after{display:none}
+.flip{animation:turn .5s ease}
+@keyframes turn{0%{transform:rotateY(7deg);opacity:.6}100%{transform:rotateY(0);opacity:1}}
+.arrow{position:absolute;top:47%;z-index:4;padding:12px;font-size:26px;min-width:36px}
+#prev{left:5px}
+#next{right:5px}
+#counter{min-width:130px;text-align:center;white-space:nowrap}
+footer{flex-wrap:wrap;min-height:60px}
+footer input[type=range]{width:95px;accent-color:#9a855e}
+label.range{display:flex;align-items:center;gap:10px;white-space:nowrap}
+#folder{font-size:12px;opacity:.7}
+#status{font-size:12px;opacity:.8}
+#full{padding:8px 13px}
+@media(max-width:650px){main{padding:5px 35px}header{font-size:12px;padding:8px}.page{padding:7px}footer{gap:9px;padding:8px}button{padding:8px 11px}#folder,#volumeLabel{display:none}}
+@media(prefers-reduced-motion:reduce){.flip{animation:none}}
+</style>
+</head>
+<body>
+<section id="gate">
+  <div class="gate-book">
+    <div class="flower">❀</div>
+    <p class="eyebrow">ЛИЧНЫЙ СВАДЕБНЫЙ АЛЬБОМ</p>
+    <h1>НАША СВАДЬБА</h1>
+    <p>Воспоминания для семьи и близких.<br>Доступ по личному приглашению.</p>
+    <form id="unlockForm">
+      <label for="inviteCode">Код доступа</label>
+      <input id="inviteCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="IVORY-XXXXXX-XXXXXX" required>
+      <div id="error" role="alert" aria-live="polite"></div>
+      <button id="unlock" type="submit">Открыть альбом</button>
+    </form>
+  </div>
+</section>
+<section id="album">
+  <header><span>НАША СВАДЬБА</span><button id="full" type="button" aria-label="Полный экран">⛶</button></header>
+  <main>
+    <button id="prev" class="arrow" type="button" aria-label="Предыдущие страницы">‹</button>
+    <div id="book" aria-label="Свадебный фотоальбом"></div>
+    <button id="next" class="arrow" type="button" aria-label="Следующие страницы">›</button>
+  </main>
+  <footer>
+    <span id="counter" aria-live="polite"></span>
+    <label class="range">Кадр <input id="jump" type="range" min="0" value="0" aria-label="Перейти к фотографии"></label>
+    <button id="music" type="button">♫ Включить музыку</button>
+    <label id="volumeLabel" class="range">Громкость <input id="volume" type="range" min="0" max="1" step=".01" value=".16"></label>
+    <span id="folder"></span>
+    <span id="status"></span>
+  </footer>
+</section>
+<script>
+"use strict";
+const el=id=>document.getElementById(id);
+let albumData=null, cryptoKey=null, pos=-1, turn=0, openedUrls=[], coverUrl=null;
+const encoder=new TextEncoder();
+function asBytes(value){return Uint8Array.from(atob(value),x=>x.charCodeAt(0));}
+async function loadEncryptedPhoto(keyName){
+  const info=albumData.files[keyName];
+  if(!info)throw new Error("Нет фотографии "+keyName);
+  const last=info.offset+info.size-1;
+  const res=await fetch(albumData.archiveUrl,{headers:{"Range":"bytes="+info.offset+"-"+last},cache:"force-cache",mode:"cors"});
+  if(res.status!==206)throw new Error("Сервер фотографий недоступен ("+res.status+")");
+  const encrypted=await res.arrayBuffer();
+  if(encrypted.byteLength!==info.size)throw new Error("Неполные данные фотографии");
+  const decrypted=await crypto.subtle.decrypt({
+    name:"AES-GCM",iv:asBytes(info.iv),
+    additionalData:encoder.encode("ivory-photo:"+keyName)
+  },cryptoKey,encrypted);
+  return URL.createObjectURL(new Blob([decrypted],{type:"image/jpeg"}));
+}
+async function openAlbum(evt){
+ evt.preventDefault();
+ el("error").textContent="";
+ const b=el("unlock");b.disabled=true;b.textContent="Открываем…";
+ try{
+  if(!window.crypto||!crypto.subtle)throw new Error("Для просмотра нужен современный браузер");
+  if(!albumData){
+    const r=await fetch("manifest.json",{cache:"no-store"});
+    if(!r.ok)throw new Error("Альбом недоступен");
+    albumData=await r.json();
+  }
+  const phrase=el("inviteCode").value.trim().toUpperCase();
+  const material=await crypto.subtle.importKey("raw",encoder.encode(phrase),"PBKDF2",false,["deriveKey"]);
+  cryptoKey=await crypto.subtle.deriveKey({
+   name:"PBKDF2",salt:asBytes(albumData.salt),iterations:albumData.iterations,hash:"SHA-256"
+  },material,{name:"AES-GCM",length:256},false,["decrypt"]);
+  try{coverUrl=await loadEncryptedPhoto("cover");}
+  catch(e){cryptoKey=null;throw new Error("Неверный код доступа");}
+  el("gate").style.display="none";
+  el("album").style.display="flex";
+  el("jump").max=String(albumData.photos.length-1);
+  el("inviteCode").value="";
+  await render();
+ }catch(e){
+  el("error").textContent=e.message||"Не удалось открыть альбом";
+ }finally{b.disabled=false;b.textContent="Открыть альбом";}
+}
+function countPerView(){return innerWidth<650?1:2;}
+function clearImages(){for(const u of openedUrls)URL.revokeObjectURL(u);openedUrls=[];}
+function makePage(imageUrl,label){
+ const page=document.createElement("div");page.className="page";
+ const img=new Image();img.alt=label;img.src=imageUrl;img.loading="eager";
+ page.append(img);return page;
+}
+async function render(){
+ const current=++turn;
+ const book=el("book");
+ const pCount=countPerView();
+ const photos=pos<0?[]:albumData.photos.slice(pos,pos+pCount);
+ const labels=pos<0?["cover"]:photos.map(x=>String(x.id));
+ el("status").textContent="Открываем…";
+ try{
+  let urls=pos<0?[coverUrl]:await Promise.all(labels.map(loadEncryptedPhoto));
+  if(current!==turn){if(pos>=0)urls.forEach(u=>URL.revokeObjectURL(u));return;}
+  clearImages();
+  book.replaceChildren();
+  book.className=(pos<0?"cover ":"")+"flip";
+  urls.forEach((u,i)=>book.append(makePage(u,pos<0?"Обложка":photos[i].name)));
+  if(pos>=0)openedUrls=urls;
+  el("counter").textContent=pos<0?"Обложка":String(pos+1)+"–"+String(Math.min(pos+pCount,albumData.photos.length))+" / "+albumData.photos.length;
+  el("jump").value=String(Math.max(0,pos));
+  el("prev").disabled=pos<0;
+  el("next").disabled=pos>=albumData.photos.length-pCount;
+  el("folder").textContent=pos<0?"":photos[0].folder;
+  el("status").textContent="";
+  setTimeout(()=>book.classList.remove("flip"),500);
+ }catch(e){el("status").textContent="Ошибка загрузки. Перелистните ещё раз.";}
+}
+function move(direction){
+ if(!albumData)return;
+ const step=countPerView(),end=Math.max(0,albumData.photos.length-step);
+ if(direction>0)pos=pos<0?0:Math.min(end,pos+step);
+ else pos=pos<=0?-1:Math.max(0,pos-step);
+ void render();
+}
+el("unlockForm").addEventListener("submit",openAlbum);
+el("prev").addEventListener("click",()=>move(-1));
+el("next").addEventListener("click",()=>move(1));
+el("jump").addEventListener("change",e=>{
+ const step=countPerView(),raw=Number(e.target.value);
+ pos=Math.min(albumData.photos.length-step,Math.floor(raw/step)*step);
+ void render();
+});
+document.addEventListener("keydown",e=>{
+ if(e.target&&e.target.tagName==="INPUT")return;
+ if(e.key==="ArrowRight")move(1);if(e.key==="ArrowLeft")move(-1);
+});
+let touchX=0;el("book").addEventListener("touchstart",e=>touchX=e.changedTouches[0].clientX,{passive:true});
+el("book").addEventListener("touchend",e=>{
+ const dx=e.changedTouches[0].clientX-touchX;
+ if(Math.abs(dx)>50)move(dx<0?1:-1);
+},{passive:true});
+window.addEventListener("resize",()=>{if(cryptoKey)void render();});
+el("full").addEventListener("click",async()=>{
+ try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen();}catch{}
+});
+let audioCtx=null,master=null,melodyTimer=null,playing=false,step=0;
+const chords=[[48,52,55,59],[45,48,52,55],[41,45,48,52],[43,47,50,55]];
+function tone(note,at,duration=1.1,amp=.15){
+ const frequency=440*Math.pow(2,(note-69)/12);
+ [1,2,3].forEach((harmonic,k)=>{
+  const o=audioCtx.createOscillator(),v=audioCtx.createGain();
+  o.type="sine";o.frequency.value=frequency*harmonic;
+  v.gain.setValueAtTime(.00001,at);
+  v.gain.linearRampToValueAtTime(amp/(harmonic*harmonic),at+.04);
+  v.gain.exponentialRampToValueAtTime(.00001,at+duration*(k?.65:1));
+  o.connect(v);v.connect(master);o.start(at);o.stop(at+duration+.05);
+ });
+}
+function phrase(){
+ const at=audioCtx.currentTime+.08,c=chords[step++%4];
+ [0,2,1,3,2,1,3,2].forEach((ix,i)=>tone(c[ix]+12,at+i*.6,2,.15));
+ tone(c[0]-12,at,4,.15);
+}
+el("music").addEventListener("click",async()=>{
+ if(!audioCtx){
+  audioCtx=new AudioContext();master=audioCtx.createGain();
+  master.gain.value=Number(el("volume").value);master.connect(audioCtx.destination);
+ }
+ if(playing){
+  clearInterval(melodyTimer);melodyTimer=null;await audioCtx.suspend();
+  playing=false;el("music").textContent="♫ Продолжить";
+ }else{
+  await audioCtx.resume();phrase();melodyTimer=setInterval(phrase,4800);
+  playing=true;el("music").textContent="Ⅱ Пауза";
+ }
+});
+el("volume").addEventListener("input",()=>{
+ if(master)master.gain.setTargetAtTime(Number(el("volume").value),audioCtx.currentTime,.1);
+});
+</script>
+</body>
+</html>
